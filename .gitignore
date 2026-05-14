@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+*.lock
+npm-debug.log*
+
+# PyInstaller
+*.spec.bak
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Secrets / env
+.env
+.env.*
+*.env
+secrets.*
+
+# Logs
+*.log
+logs/
