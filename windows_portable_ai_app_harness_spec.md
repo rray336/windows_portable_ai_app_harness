@@ -511,6 +511,46 @@ exe = EXE(
 
 ---
 
+## stdout/stderr Encoding in Windowed Mode
+
+Setting `console=False` causes Python's stdout and stderr to inherit the Windows charmap (cp1252) encoding. Any `print()` call containing non-ASCII characters — article titles, filenames, exception messages from external data — will raise `UnicodeEncodeError` and can crash background tasks silently.
+
+The launcher MUST redirect stdout and stderr to UTF-8 at the top of `launcher/main.py`, before any other imports:
+
+```python
+import io as _io, os as _os, sys as _sys
+
+if getattr(_sys, "frozen", False):
+    _nul = open(_os.devnull, "w", encoding="utf-8", errors="replace")
+    _sys.stdout = _nul
+    _sys.stderr = _nul
+else:
+    for _attr in ("stdout", "stderr"):
+        _s = getattr(_sys, _attr, None)
+        if _s and hasattr(_s, "reconfigure"):
+            try: _s.reconfigure(encoding="utf-8", errors="replace")
+            except Exception: pass
+```
+
+Any backend module that prints user-supplied or externally-sourced content (titles, URLs, API responses, exception messages) MUST use an encoding-safe wrapper instead of bare `print()`:
+
+```python
+def _print(*args, **kwargs):
+    try:
+        print(*args, **kwargs)
+    except (UnicodeEncodeError, AttributeError):
+        safe = " ".join(
+            a.encode("ascii", errors="replace").decode("ascii")
+            if isinstance(a, str) else str(a) for a in args
+        )
+        try:
+            print(safe, **{k: v for k, v in kwargs.items() if k != "end"})
+        except Exception:
+            pass
+```
+
+---
+
 ## MSVC Runtime DLL Requirements
 
 PyInstaller does not always bundle the Microsoft Visual C++ runtime DLLs automatically. On stripped-down or corporate-hardened Windows machines these DLLs may be absent, causing the application to crash immediately before Python starts — with no useful error message shown to the user.

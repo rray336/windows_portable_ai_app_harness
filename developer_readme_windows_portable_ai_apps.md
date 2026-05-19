@@ -67,6 +67,8 @@ Verify:
 - PyInstaller packaging compatibility
 - correct Run_App.bat behavior
 - portable ZIP distribution readiness
+- stdout and stderr redirected to UTF-8 in launcher (frozen mode)
+- print() calls involving external content use an encoding-safe wrapper
 ```
 
 ---
