@@ -36,6 +36,44 @@ The AI agent reads the spec and builds a fully compliant app. Run `package.bat` 
 
 No Python. No Node.js. No admin rights. No configuration.
 
+## Why React for the frontend
+
+React is a build-time-only tool. After `vite build`, it produces plain HTML/CSS/JS — no Node.js process, no runtime framework, no package manager needed on the end user's machine. That's the property that makes it compatible with the ZIP-and-run model.
+
+The compilation flow:
+
+```
+Developer machine                      End user's machine
+─────────────────                      ──────────────────
+React source + Node.js                 ZIP → extract → double-click
+        ↓ npm run build (Vite)
+  dist/ → HTML/CSS/JS
+        ↓ PyInstaller bundles into _internal/
+  AppName.exe + _internal/
+        ↓ zipped
+  AppName.zip          ─────────────────────────────────→ no Node, no npm, no Python
+```
+
+At runtime, FastAPI serves those static files locally and PyWebView opens a native desktop window pointed at localhost. The user sees a proper desktop application, not a browser tab.
+
+The alternatives were ruled out for the same core reason: Next.js requires a Node.js server at runtime, which breaks the zero-dependency constraint. Vue is allowed if explicitly requested but React is the default. Angular is excluded as unnecessarily heavy for this use case.
+
+Vite is the preferred bundler because it produces clean, minimal static output. Tailwind CSS and shadcn/ui both compile into static output with no runtime CDN or server-side dependency.
+
+## Why FastAPI for the backend
+
+FastAPI is the only Python web framework in this stack that is designed to run embedded inside a larger process — which is exactly what PyInstaller packaging requires. The launcher starts FastAPI via Uvicorn in a background thread, then opens the PyWebView window. There is no separate server process, no daemon, no system service.
+
+Django was excluded because it is built around a runserver model with a large configuration surface, migrations machinery, and admin scaffolding that add complexity without benefit for a single-user local app. Flask was excluded as a default because it lacks built-in async support, automatic request validation, and OpenAPI generation, all of which FastAPI provides with less boilerplate.
+
+The specific properties that make FastAPI the right fit here:
+
+- **Embeds cleanly into PyInstaller** — no subprocess, no external server process required
+- **Async by default** — Uvicorn handles the PyWebView thread and API calls concurrently without blocking
+- **Automatic input validation** — Pydantic models validate API requests at the boundary without extra code
+- **Minimal startup cost** — the app is up before the PyWebView window finishes loading
+- **Serves static files natively** — `StaticFiles` mount serves the compiled React build directly, no separate static server needed
+
 ## Files
 
 | File | Purpose |
