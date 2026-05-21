@@ -69,6 +69,8 @@ Verify:
 - portable ZIP distribution readiness
 - stdout and stderr redirected to UTF-8 in launcher (frozen mode)
 - print() calls involving external content use an encoding-safe wrapper
+- all packaging scripts (build.bat, package.bat, Run_App.bat, packaging/app.spec) live inside dist/
+- app.spec project_root goes up three levels from dist/packaging/app.spec to reach project root
 ```
 
 ---
@@ -80,15 +82,23 @@ Paste this into the AI chat window after the compliance review passes:
 ```text
 Build the final distributable package.
 
-Generate:
-- AppName.zip
+All packaging scripts must live inside dist/:
+  dist/build.bat          — installs Python deps (pip install -r ..\requirements.txt)
+                            installs frontend deps (npm install in ..\frontend)
+                            compiles React frontend (npm run build)
+  dist/package.bat        — calls build.bat, runs PyInstaller, copies Run_App.bat
+                            into the output, renames output to dist/AppName/
+  dist/Run_App.bat        — end-user launcher (staged in dist/, copied into AppName/ at build time)
+                            must check for WebView2 before launching
+  dist/packaging/app.spec — PyInstaller spec; project_root must go up three levels
+                            (dist/packaging/ → dist/ → project root)
 
-The ZIP file must contain:
-- Run_App.bat
-- packaged executable
-- all runtime dependencies
-- frontend assets
-- required supporting files
+PyInstaller must use --workpath and --distpath pointing to %TEMP% to avoid file locks.
+Use robocopy with "if %errorlevel% geq 8" (not neq 0) — code 1 means success.
+
+Generate:
+- dist/AppName/     (runnable folder)
+- dist/AppName.zip  (zip of the folder — this is what gets shared)
 
 The application must run on a clean Windows 11 machine without:
 - Python installed
