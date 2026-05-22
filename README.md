@@ -74,6 +74,31 @@ The specific properties that make FastAPI the right fit here:
 - **Minimal startup cost** — the app is up before the PyWebView window finishes loading
 - **Serves static files natively** — `StaticFiles` mount serves the compiled React build directly, no separate static server needed
 
+## Post-build containerization (Docker)
+
+The harness produces a Windows desktop app by default. If you need to deploy the same app as a web service — on a server, behind a URL, or accessible from any browser — the backend can be containerized without rewriting it.
+
+The Docker pipeline is a separate workflow that runs after the harness build is complete. It strips the desktop shell (PyWebView, PyInstaller), packages the FastAPI backend and compiled React frontend into a Linux container, and exports a `.tar` image that can be loaded and run anywhere Docker is available.
+
+**Two roles, two documents:**
+
+| Document | Audience | Purpose |
+|---|---|---|
+| `DOCKER_IMAGE_CHECKLIST.md` | AI coding agent | Prepares the project for containerization — removes desktop dependencies, verifies the start command, handles polyglot builds, environment variables, SQLite persistence, and browser dependencies |
+| `DOCKER_BUILD_GUIDE.md` | Distribution engineer | Builds the image via Railpack in WSL2, tests it locally, exports a `.tar`, and shares it with the recipient |
+| `DOCKER_README.md` | Both | Overview of the pipeline and quick-reference table |
+
+**End user experience (Docker path):**
+
+1. Receive `appname.tar`
+2. `docker load -i appname.tar`
+3. `docker run --rm -p 8000:8000 appname`
+4. Open `http://localhost:8000` in a browser
+
+Requires Docker. No source code, no Python, no Node.js.
+
+---
+
 ## Files
 
 | File | Purpose |
@@ -81,3 +106,6 @@ The specific properties that make FastAPI the right fit here:
 | `windows_portable_ai_app_harness_spec.md` | Full architecture and deployment specification |
 | `CLAUDE.md` | Hard-constraints summary loaded automatically by Claude Code |
 | `developer_readme_windows_portable_ai_apps.md` | Step-by-step developer workflow |
+| `DOCKER_README.md` | Overview of the Docker containerization pipeline |
+| `DOCKER_IMAGE_CHECKLIST.md` | Checklist for preparing a project for Docker (AI agent) |
+| `DOCKER_BUILD_GUIDE.md` | Step-by-step Docker build and distribution guide (engineer) |
