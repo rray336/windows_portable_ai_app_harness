@@ -1,5 +1,7 @@
 # Docker Containerization — Overview
 
+This pipeline uses **[Railpack](https://github.com/railwayapp/railpack)** to build Docker images. Railpack is an open-source build tool that inspects your project, auto-detects the language and framework, and produces a Docker image without you writing a Dockerfile. It handles dependency installation, frontend builds, and start command detection automatically. You need Railpack installed in WSL2 before any of these steps will work — see `WSL2_DOCKER_SETUP.md` for setup instructions.
+
 This folder contains two Docker-related documents that together cover the full
 pipeline from source code to a shareable container image. They are written for
 different audiences and used at different stages.
